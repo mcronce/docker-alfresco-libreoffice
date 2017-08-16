@@ -8,12 +8,12 @@ RUN \
                    liberation-sans-fonts liberation-mono-fonts freetype open-sans-fonts \
     && yum clean all
 
-ENV LIBREOFFICE_VERSION="5.2.7" \
-    LIBREOFFICE_VERSION_MINOR="5.2.7.2"
+ENV LIBREOFFICE_VERSION="5.4.0" \
+    LIBREOFFICE_VERSION_MINOR="5.4.0.3"
 ENV LIBREOFFICE_DOWNLOAD_MIRROR="http://download.documentfoundation.org/libreoffice/stable" \
     HOST="0.0.0.0" \
     PORT="8100" \
-    LIBREOFFICE_HOME="/opt/libreoffice5.2" \
+    LIBREOFFICE_HOME="/opt/libreoffice5.4" \
     LIBREOFFICE_RPM_TGZ="LibreOffice_${LIBREOFFICE_VERSION}_Linux_x86-64_rpm.tar.gz" \
     LIBREOFFICE_RPM_DIR="LibreOffice_${LIBREOFFICE_VERSION_MINOR}_Linux_x86-64_rpm" \
     PATH=$LIBREOFFICE_HOME/program:$PATH
@@ -21,8 +21,8 @@ ENV LIBREOFFICE_DOWNLOAD_MIRROR="http://download.documentfoundation.org/libreoff
 RUN echo "curl -L ${LIBREOFFICE_DOWNLOAD_MIRROR}/${LIBREOFFICE_VERSION}/rpm/x86_64/${LIBREOFFICE_RPM_TGZ} | tar xz " \
     && curl -L ${LIBREOFFICE_DOWNLOAD_MIRROR}/${LIBREOFFICE_VERSION}/rpm/x86_64/${LIBREOFFICE_RPM_TGZ} | tar xz \
     && yum install -y \
-      ${LIBREOFFICE_RPM_DIR}/RPMS/libreoffice5.2-*.rpm \
-      ${LIBREOFFICE_RPM_DIR}/RPMS/libobasis5.2-*.rpm \
+      ${LIBREOFFICE_RPM_DIR}/RPMS/libreoffice5.4-*.rpm \
+      ${LIBREOFFICE_RPM_DIR}/RPMS/libobasis5.4-*.rpm \
     && yum clean all \
     && rm -rf ${LIBREOFFICE_RPM_DIR} ${LIBREOFFICE_RPM_TGZ} \
     && useradd -ms /bin/bash libreoffice \
@@ -34,8 +34,8 @@ EXPOSE ${PORT}
 
 #COPY assets/sofficerc /etc/libreoffice/sofficerc
 COPY assets/entrypoint.sh /$LIBREOFFICE_HOME/
-RUN chmod +x /opt/libreoffice5.2/entrypoint.sh
+RUN chmod +x /opt/libreoffice5.4/entrypoint.sh
 
-ENTRYPOINT ["/opt/libreoffice5.2/entrypoint.sh"]
+ENTRYPOINT ["/opt/libreoffice5.4/entrypoint.sh"]
 CMD ["run"]
 
