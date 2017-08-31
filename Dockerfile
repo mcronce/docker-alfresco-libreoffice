@@ -1,5 +1,22 @@
+FROM fedora as version_discoverer
+ENV LIBREOFFICE_DOWNLOAD_MIRROR="http://download.documentfoundation.org/libreoffice/stable"
+
+RUN dnf install -y python2-pip
+RUN pip install --no-cache-dir mechanize cssselect lxml packaging
+
+RUN mkdir /app
+ADD assets/find_latest_version /app/
+RUN \
+	( \
+		set -ex; \
+		echo "LIBREOFFICE_DOWNLOAD_MIRROR=\"${LIBREOFFICE_DOWNLOAD_MIRROR}\""; \
+		echo "LIBREOFFICE_VERSION=\"$(/app/find_latest_version "${LIBREOFFICE_DOWNLOAD_MIRROR}")\""; \
+	) > /app/latest_versions.env
+
 FROM centos:centos7
 MAINTAINER Jeremie Lesage <jeremie.lesage@gmail.com>
+
+COPY --from=version_discoverer /app/latest_versions.env /root/
 
 RUN \
     yum install -y fontconfig libSM libICE libXrender libXext cups-libs cairo \
@@ -8,19 +25,18 @@ RUN \
                    liberation-sans-fonts liberation-mono-fonts freetype open-sans-fonts \
     && yum clean all
 
-ENV LIBREOFFICE_VERSION="5.4.0" \
-    LIBREOFFICE_VERSION_MINOR="5.4.0.3"
-ENV LIBREOFFICE_DOWNLOAD_MIRROR="http://download.documentfoundation.org/libreoffice/stable" \
-    HOST="0.0.0.0" \
+ENV HOST="0.0.0.0" \
     PORT="8100" \
     LIBREOFFICE_HOME="/opt/libreoffice5.4" \
-    LIBREOFFICE_RPM_TGZ="LibreOffice_${LIBREOFFICE_VERSION}_Linux_x86-64_rpm.tar.gz" \
-    LIBREOFFICE_RPM_DIR="LibreOffice_${LIBREOFFICE_VERSION_MINOR}_Linux_x86-64_rpm" \
-    PATH=$LIBREOFFICE_HOME/program:$PATH
+    PATH="$LIBREOFFICE_HOME/program:$PATH"
 
-RUN echo "curl -L ${LIBREOFFICE_DOWNLOAD_MIRROR}/${LIBREOFFICE_VERSION}/rpm/x86_64/${LIBREOFFICE_RPM_TGZ} | tar xz " \
-    && curl -L ${LIBREOFFICE_DOWNLOAD_MIRROR}/${LIBREOFFICE_VERSION}/rpm/x86_64/${LIBREOFFICE_RPM_TGZ} | tar xz \
-    && yum install -y \
+RUN \
+	set -ex && \
+	. /root/latest_versions.env && \
+	LIBREOFFICE_RPM_TGZ="LibreOffice_${LIBREOFFICE_VERSION}_Linux_x86-64_rpm.tar.gz" && \
+	LIBREOFFICE_RPM_DIR="LibreOffice_${LIBREOFFICE_VERSION}.*_Linux_x86-64_rpm" && \
+	curl -L "${LIBREOFFICE_DOWNLOAD_MIRROR}/${LIBREOFFICE_VERSION}/rpm/x86_64/${LIBREOFFICE_RPM_TGZ}" | tar xz && \
+	yum install -y \
       ${LIBREOFFICE_RPM_DIR}/RPMS/libreoffice5.4-*.rpm \
       ${LIBREOFFICE_RPM_DIR}/RPMS/libobasis5.4-*.rpm \
     && yum clean all \
