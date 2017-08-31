@@ -23,6 +23,7 @@ RUN \
                    xorg-x11-fonts-100dpi xorg-x11-fonts-75dpi ghostscript-fonts \
                    gnu-free-sans-fonts gnu-free-serif-fonts  liberation-serif-fonts \
                    liberation-sans-fonts liberation-mono-fonts freetype open-sans-fonts \
+                   libXinerama \
     && yum clean all
 
 ENV HOST="0.0.0.0" \
